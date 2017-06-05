@@ -23,7 +23,7 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', jsonParser, (req, res) => {
-  const requiredFields = ['acronym', 'definition', 'category'];
+  const requiredFields = ['acronym', 'definition'];
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
@@ -33,10 +33,8 @@ router.post('/', jsonParser, (req, res) => {
     }
   }
   Acronyms.create({
-    acronym: req.body.acronym, 
-    definition: req.body.definition,
-    category: req.body.category,
-    notes: req.body.notes
+    acronym: req.body.acronym,
+    definition: req.body.definition
   }).then(
     acronym => res.status(201).json(acronym.apiRepr())
   ).catch(err => {
@@ -46,7 +44,7 @@ router.post('/', jsonParser, (req, res) => {
 });
 
 router.put('/:id', jsonParser, (req, res) => {
-  const requiredFields = ['acronym', 'definition', 'category'];
+  const requiredFields = ['acronym', 'definition'];
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
@@ -65,10 +63,8 @@ router.put('/:id', jsonParser, (req, res) => {
   console.log(`Updating Acronym \`${req.params.id}\``);
   Acronyms.findByIdAndUpdate(req.params.id, {$set: {
     id: req.params.id,
-    acronym: req.body.acronym, 
-    definition: req.body.definition,
-    category: req.body.category,
-    notes: req.body.notes
+    acronym: req.body.acronym,
+    definition: req.body.definition
   }}).exec().then(acronym => {
     console.log(`Updated Acronym \`${acronym.id}\``);
     res.status(201).json(acronym.apiRepr());

@@ -1,0 +1,58 @@
+[
+	{
+		"Acronym": "ES6",
+		"Definition": "ECMAScript 6"
+	},
+	{
+		"Acronym": "API",
+		"Definition": "Application Programming Interface"
+	},
+	{
+		"Acronym": "CRUD",
+		"Definition": "Create"
+	},
+	{
+		"Acronym": "DevOps",
+		"Definition": "software DEVelopment"
+	},
+	{
+		"Acronym": "V8",
+		"Definition": "JavaScript engine from Chrome"
+	},
+	{
+		"Acronym": "JSON ",
+		"Definition": "JavaScript Object Notation"
+	},
+	{
+		"Acronym": "JSONP",
+		"Definition": "JavaScript Object Notation with Padding"
+	},
+	{
+		"Acronym": "CORS ",
+		"Definition": "Cross origin resource sharing "
+	},
+	{
+		"Acronym": "DRY",
+		"Definition": "Don't repeat yourself"
+	},
+	{
+		"Acronym": "NPM",
+		"Definition": "Node Package Manager"
+	},
+	{
+		"Acronym": "PaaS",
+		"Definition": "Platform-as-a-Service"
+	},
+	{
+		"Acronym": "REST",
+		"Definition": "REpresentational State Transfer"
+	},
+	{
+		"Acronym": "CI",
+		"Definition": "Continuous integration"
+	},
+	{
+		"Acronym": "SQL",
+		"Definition": "Structured query language"
+	}
+]

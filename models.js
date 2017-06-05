@@ -2,18 +2,14 @@ const mongoose = require('mongoose');
 
 const acronymsSchema = mongoose.Schema({
   acronym: {type: String, required: true},
-  definition: {type: String, required: true},
-  category: {type: String, required: true},
-  notes: {type: String, required: false}
+  definition: {type: String, required: true}
 });
 
 acronymsSchema.methods.apiRepr = function() {
   return {
     id: this._id,
     acronym: this.acronym,
-    definition: this.definition,
-    category: this.category,
-    notes: this.notes
+    definition: this.definition
   };
 };
 
