@@ -9,7 +9,7 @@
 	},
 	{
 		"Acronym": "CRUD",
-		"Definition": "Create"
+		"Definition": "Create, Read, Update and Delete"
 	},
 	{
 		"Acronym": "DevOps",
@@ -20,7 +20,7 @@
 		"Definition": "JavaScript engine from Chrome"
 	},
 	{
-		"Acronym": "JSON ",
+		"Acronym": "JSON",
 		"Definition": "JavaScript Object Notation"
 	},
 	{
@@ -28,8 +28,8 @@
 		"Definition": "JavaScript Object Notation with Padding"
 	},
 	{
-		"Acronym": "CORS ",
-		"Definition": "Cross origin resource sharing "
+		"Acronym": "CORS",
+		"Definition": "Cross origin resource sharing"
 	},
 	{
 		"Acronym": "DRY",
