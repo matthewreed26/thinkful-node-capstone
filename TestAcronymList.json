@@ -1,58 +1,58 @@
 [
 	{
-		"Acronym": "ES6",
-		"Definition": "ECMAScript 6"
+		"acronym": "ES6",
+		"definition": "ECMAScript 6"
 	},
 	{
-		"Acronym": "API",
-		"Definition": "Application Programming Interface"
+		"acronym": "API",
+		"definition": "Application Programming Interface"
 	},
 	{
-		"Acronym": "CRUD",
-		"Definition": "Create, Read, Update and Delete"
+		"acronym": "CRUD",
+		"definition": "Create, Read, Update and Delete"
 	},
 	{
-		"Acronym": "DevOps",
-		"Definition": "software DEVelopment and information technology OPerationS"
+		"acronym": "DevOps",
+		"definition": "software DEVelopment and information technology OPerationS"
 	},
 	{
-		"Acronym": "V8",
-		"Definition": "JavaScript engine from Chrome"
+		"acronym": "V8",
+		"definition": "JavaScript engine from Chrome"
 	},
 	{
-		"Acronym": "JSON",
-		"Definition": "JavaScript Object Notation"
+		"acronym": "JSON",
+		"definition": "JavaScript Object Notation"
 	},
 	{
-		"Acronym": "JSONP",
-		"Definition": "JavaScript Object Notation with Padding"
+		"acronym": "JSONP",
+		"definition": "JavaScript Object Notation with Padding"
 	},
 	{
-		"Acronym": "CORS",
-		"Definition": "Cross origin resource sharing"
+		"acronym": "CORS",
+		"definition": "Cross origin resource sharing"
 	},
 	{
-		"Acronym": "DRY",
-		"Definition": "Don't repeat yourself"
+		"acronym": "DRY",
+		"definition": "Don't repeat yourself"
 	},
 	{
-		"Acronym": "NPM",
-		"Definition": "Node Package Manager"
+		"acronym": "NPM",
+		"definition": "Node Package Manager"
 	},
 	{
-		"Acronym": "PaaS",
-		"Definition": "Platform-as-a-Service"
+		"acronym": "PaaS",
+		"definition": "Platform-as-a-Service"
 	},
 	{
-		"Acronym": "REST",
-		"Definition": "REpresentational State Transfer"
+		"acronym": "REST",
+		"definition": "REpresentational State Transfer"
 	},
 	{
-		"Acronym": "CI",
-		"Definition": "Continuous integration"
+		"acronym": "CI",
+		"definition": "Continuous integration"
 	},
 	{
-		"Acronym": "SQL",
-		"Definition": "Structured query language"
+		"acronym": "SQL",
+		"definition": "Structured query language"
 	}
 ]
