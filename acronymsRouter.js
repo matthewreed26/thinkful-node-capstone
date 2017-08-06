@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const bodyParser = require('body-parser');
-const jsonParser = bodyParser.json();
 const {Acronyms} = require('./models');
 
 router.get('/', (req, res) => {
@@ -22,7 +20,7 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/', jsonParser, (req, res) => {
+router.post('/', (req, res) => {
   const requiredFields = ['acronym', 'definition'];
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
@@ -43,7 +41,7 @@ router.post('/', jsonParser, (req, res) => {
   });
 });
 
-router.put('/:id', jsonParser, (req, res) => {
+router.put('/:id', (req, res) => {
   const requiredFields = ['acronym', 'definition'];
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
@@ -55,8 +53,8 @@ router.put('/:id', jsonParser, (req, res) => {
   }
   if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
     const message = (
-      `Request path id (${req.params.id}) and request body id 
-      (${req.body.id}) must match`);
+      `Request path id (${req.params.id}) and request body id `
+      `(${req.body.id}) must match`);
     console.error(message);
     return res.status(400).send(message);
   }
@@ -67,7 +65,7 @@ router.put('/:id', jsonParser, (req, res) => {
     definition: req.body.definition
   }}).exec().then(acronym => {
     console.log(`Updated Acronym \`${acronym.id}\``);
-    res.status(200).json(acronym.apiRepr());
+    res.status(201).json(acronym.apiRepr());
   }).catch(err => {
     console.error(err);
     res.status(500).json({message: 'Internal server error'});

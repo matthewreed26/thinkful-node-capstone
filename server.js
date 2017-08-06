@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const app = express();
 const mongoose = require('mongoose');
@@ -13,7 +14,8 @@ const acronymsRouter = require('./acronymsRouter');
 
 // log the http layer
 app.use(morgan('common'));
-
+app.use(bodyParser.urlencoded({ extended: true })); // Parses urlencoded bodies
+app.use(bodyParser.json()); // Send JSON responses
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
