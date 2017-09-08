@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
-
-mongoose.Promise = global.Promise;
+const config = require('../config');
 
 const UserSchema = mongoose.Schema({
   username: {
@@ -30,7 +29,7 @@ UserSchema.methods.validatePassword = function(password) {
 }
 
 UserSchema.statics.hashPassword = function(password) {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, config.BCRYPT_HASH_LENGTH);
 }
 
 const User = mongoose.model('User', UserSchema);

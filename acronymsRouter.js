@@ -1,8 +1,11 @@
 const express = require('express');
+const passport = require('passport');
 const router = express.Router();
 const {Acronyms} = require('./models');
 
-router.get('/', (req, res) => {
+router.get('/',
+    passport.authenticate('jwt', {session: false}), 
+    (req, res) => {
   Acronyms.find().exec().then(acronyms =>
     res.json(acronyms.map(acronym => acronym.apiRepr()))
   ).catch(err => {
@@ -11,7 +14,9 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', 
+    passport.authenticate('jwt', {session: false}), 
+    (req, res) => {
   Acronyms.findById(req.params.id).exec().then(acronym =>
     res.json(acronym.apiRepr())
   ).catch(err => {
@@ -20,7 +25,9 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/', (req, res) => {
+router.post('/', 
+    passport.authenticate('jwt', {session: false}), 
+    (req, res) => {
   const requiredFields = ['acronym', 'definition'];
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
@@ -41,7 +48,9 @@ router.post('/', (req, res) => {
   });
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', 
+    passport.authenticate('jwt', {session: false}), 
+    (req, res) => {
   const requiredFields = ['acronym', 'definition'];
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
@@ -72,7 +81,9 @@ router.put('/:id', (req, res) => {
   });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', 
+    passport.authenticate('jwt', {session: false}), 
+    (req, res) => {
   console.log(`Deleting Acronym \`${req.params.id}\``);
   Acronyms.findByIdAndRemove(req.params.id).exec().then(acronym => {
     console.log(`Deleted Acronym \`${acronym.id}\``);
