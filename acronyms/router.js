@@ -1,13 +1,13 @@
 const express = require('express');
 const passport = require('passport');
 const router = express.Router();
-const {Acronyms} = require('./models');
+const {Acronym} = require('./models');
 
 router.get('/',
     passport.authenticate('jwt', {session: false}), 
     (req, res) => {
-  Acronyms.find().exec().then(acronyms =>
-    res.json(acronyms.map(acronym => acronym.apiRepr()))
+  Acronym.find().exec().then(Acronym =>
+    res.json(Acronym.map(acronym => acronym.apiRepr()))
   ).catch(err => {
     console.error(err);
     res.status(500).json({message: 'Internal server error'});
@@ -17,7 +17,7 @@ router.get('/',
 router.get('/:id', 
     passport.authenticate('jwt', {session: false}), 
     (req, res) => {
-  Acronyms.findById(req.params.id).exec().then(acronym =>
+  Acronym.findById(req.params.id).exec().then(acronym =>
     res.json(acronym.apiRepr())
   ).catch(err => {
     console.error(err);
@@ -37,7 +37,7 @@ router.post('/',
       return res.status(400).send(message);
     }
   }
-  Acronyms.create({
+  Acronym.create({
     acronym: req.body.acronym,
     definition: req.body.definition
   }).then(
@@ -68,7 +68,7 @@ router.put('/:id',
     return res.status(400).send(message);
   }
   console.log(`Updating Acronym \`${req.params.id}\``);
-  Acronyms.findByIdAndUpdate(req.params.id, {$set: {
+  Acronym.findByIdAndUpdate(req.params.id, {$set: {
     id: req.params.id,
     acronym: req.body.acronym,
     definition: req.body.definition
@@ -85,7 +85,7 @@ router.delete('/:id',
     passport.authenticate('jwt', {session: false}), 
     (req, res) => {
   console.log(`Deleting Acronym \`${req.params.id}\``);
-  Acronyms.findByIdAndRemove(req.params.id).exec().then(acronym => {
+  Acronym.findByIdAndRemove(req.params.id).exec().then(acronym => {
     console.log(`Deleted Acronym \`${acronym.id}\``);
     res.status(204).end();
   }).catch(err => {
@@ -100,4 +100,4 @@ router.use('*', function(req, res) {
 });
 
 
-module.exports = router;
+module.exports = {router};

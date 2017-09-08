@@ -3,28 +3,24 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
-const app = express();
+const passport = require('passport');
 const mongoose = require('mongoose');
-const passport = require('passport')
-
-app.use(cors());
-app.options('*', cors());
-
-const {router: usersRouter} = require('./users');
-const {router: authRouter, basicStrategy, jwtStrategy} = require('./auth');
-
 // Mongoose internally uses a promise-like object,
 // but its better to make Mongoose use built in es6 promises
 mongoose.Promise = global.Promise;
 
-const {PORT, DATABASE_URL} = require('./config');
-
-const acronymsRouter = require('./acronymsRouter');
-
-// log the http layer
+const app = express();
 app.use(morgan('common'));
+
+app.use(cors());
+app.options('*', cors());
 app.use(bodyParser.urlencoded({ extended: true })); // Parses urlencoded bodies
 app.use(bodyParser.json()); // Send JSON responses
+
+const {router: usersRouter} = require('./users');
+const {router: authRouter, basicStrategy, jwtStrategy} = require('./auth');
+const {router: acronymsRouter} = require('./acronyms');
+const {PORT, DATABASE_URL} = require('./config');
 
 app.use(passport.initialize());
 passport.use(basicStrategy);
@@ -32,17 +28,6 @@ passport.use(jwtStrategy);
 
 app.use('/api/users/', usersRouter);
 app.use('/api/auth/', authRouter);
-
-// A protected endpoint which needs a valid JWT to access it
-// app.get('/api/protected',
-//     passport.authenticate('jwt', {session: false}),
-//     (req, res) => {
-//         return res.json({
-//             data: 'rosebud'
-//         });
-//     }
-// );
-
 app.use('/api/acronyms', acronymsRouter);
 
 let server;
