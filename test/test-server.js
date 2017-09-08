@@ -1,7 +1,11 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+const faker = require('faker');
+const mongoose = require('mongoose');
 
-const {app, runServer, closeServer} = require('../server');
+const {Acronym} = require('../acronyms/models');
+const {app, runServer, closeServer} = require('../server');const { TEST_DATABASE_URL, JWT_SECRET } = require('../config');
+
 
 // this lets us use *should* style syntax in our tests
 // so we can do things like `(1 + 1).should.equal(2);`
@@ -13,8 +17,37 @@ const should = chai.should();
 // see: https://github.com/chaijs/chai-http
 chai.use(chaiHttp);
 
+// used to put randomish documents in db
+// so we have data to work with and assert about.
+// we use the Faker library to automatically
+// generate placeholder values for author, title, content
+// and then we insert that data into mongo
+function seedAcronymData() {
+  console.info('seeding acronym data');
+  const seedData = [];
+
+  for (let i=1; i<=10; i++) {
+    seedData.push({'acronym':faker.random.word, 'definition':faker.random.words});
+  }
+  // this will return a promise
+  return Acronym.insertMany(seedData);
+}
+
+// this function deletes the entire database.
+// we'll call it in an `afterEach` block below
+// to ensure  ata from one test does not stick
+// around for next one
+function tearDownDb() {
+    console.warn('Deleting database');
+    return mongoose.connection.dropDatabase();
+}
 
 describe('Acronym Finder', function() {
+  const expectedKeys = ['id', 'acronym', 'definition'];
+  const username = 'exampleUser';
+  const password = 'examplePass';
+  const firstName = 'Example';
+  const lastName = 'User';
 
   // Before our tests run, we activate the server. Our `runServer`
   // function returns a promise, and we return the that promise by
@@ -22,7 +55,30 @@ describe('Acronym Finder', function() {
   // there's a possibility of a race condition where our tests start
   // running before our server has started.
   before(function() {
-    return runServer();
+    return runServer(TEST_DATABASE_URL);
+  });
+
+  beforeEach(function() {
+    return seedAcronymData();
+  });
+
+  beforeEach(function() {
+    return User.hashPassword(password).then(password =>
+      User.create({
+        username,
+        password,
+        firstName,
+        lastName
+      })
+    );
+  });
+
+  afterEach(function() {
+    return tearDownDb();
+  });
+
+  afterEach(function() {
+    return User.remove({});
   });
 
   // although we only have one test module at the moment, we'll
@@ -33,119 +89,222 @@ describe('Acronym Finder', function() {
   after(function() {
     return closeServer();
   });
-
-  // test strategy:
-  //   1. make request to `/shopping-list`
-  //   2. inspect response object and prove has right code and have
-  //   right keys in response object.
-  it('should list acronyms on GET', function() {
-    // for Mocha tests, when we're dealing with asynchronous operations,
-    // we must either return a Promise object or else call a `done` callback
-    // at the end of the test. The `chai.request(server).get...` call is asynchronous
-    // and returns a Promise, so we just return it.
-    return chai.request(app)
-      .get('/acronyms')
-      .then(function(res) {
-        res.should.have.status(200);
-        res.should.be.json;
-        res.body.should.be.a('array');
-
-        // because we already created items in the database
-        res.body.length.should.be.at.least(1);
-        // each item should be an object with key/value pairs
-        // for `id`, `name` and `checked`.
-        const expectedKeys = ['id', 'acronym', 'definition'];
-        res.body.forEach(function(acronym) {
-          acronym.should.be.a('object');
-          acronym.should.include.keys(expectedKeys);
+  
+  
+  // note the use of nested `describe` blocks.
+  // this allows us to make clearer, more discrete tests that focus
+  // on proving something small
+  describe('GET endpoint', function() {
+    let token;
+    beforeEach(function() {
+      token = jwt.sign({
+        user: {
+          username,
+          firstName,
+          lastName
+        },
+      }, JWT_SECRET, {
+        algorithm: 'HS256',
+        subject: username,
+        expiresIn: '7d'
+      });
+    });
+  
+    it('should list acronyms on GET', function() {
+      // strategy:
+      //    1. get back all acronyms returned by by GET request to `/api/acronyms`
+      //    2. prove res has right status, data type
+      //    3. prove the number of acronyms we got back is equal to number
+      //       in db.
+      //
+      // need to have access to mutate and access `res` across
+      // `.then()` calls below, so declare it here so can modify in place
+      let res;
+      return chai.request(app)
+        .get('/api/acronyms')
+        .set('authorization', `Bearer ${token}`)
+        .then(function(res) {
+          // so subsequent .then blocks can access resp obj.
+          res = _res;
+          res.should.have.status(200);
+          // otherwise our db seeding didn't work
+          res.body.should.have.length.of.at.least(1);
+          return Acronym.count();
+        })
+        .then(function(count){
+          res.body.should.have.length.of(count);
         });
-      });
+    });
+    
+    it('should list acronyms with right fields', function() {
+      // Strategy: Get back all acronyms, and ensure they have expected keys
+      let resAcronym;
+      return chai.request(app)
+        .get('/api/acronyms')
+        .set('authorization', `Bearer ${token}`)
+        .then(function(res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.of.at.least(1);
+          // each item should be an object with key/value pairs
+          // for `id`, `acronym` and `definition`.
+          res.body.forEach(function(acronym) {
+            acronym.should.be.a('object');
+            acronym.should.include.keys(expectedKeys);
+          });
+          return Acronym.findById(resAcronym.id);
+        })
+        .then(function(acronym){
+          resAcronym.id.should.equal(acronym.id);
+          resAcronym.acronym.should.equal(acronym.acronym);
+          resAcronym.definition.should.equal(acronym.definition);
+        });
+    });
   });
 
-  // test strategy:
-  //  1. make a POST request with data for a new item
-  //  2. inspect response object and prove it has right
-  //  status code and that the returned object has an `id`
-  it('should add an acronym on POST', function() {
-    const newAcronym = {acronym: 'TIRY', definition: "This Isn't Real Yet"};
-    return chai.request(app)
-      .post('/acronyms')
-      .send(newAcronym)
-      .then(function(res) {
-        res.should.have.status(201);
-        res.should.be.json;
-        res.body.should.be.a('object');
-        const expectedKeys = ['id', 'acronym', 'definition'];
-        res.body.should.include.keys(expectedKeys);
-        res.body.id.should.not.be.null;
-        // response should be deep equal to `newAcronym` from above if we assign
-        // `id` to it from `res.body.id`
-        res.body.should.deep.equal(Object.assign(newAcronym, {id: res.body.id}));
+  describe('POST endpoint', function() {
+    let token;
+    beforeEach(function() {
+      token = jwt.sign({
+        user: {
+          username,
+          firstName,
+          lastName
+        },
+      }, JWT_SECRET, {
+        algorithm: 'HS256',
+        subject: username,
+        expiresIn: '7d'
       });
+    });
+    
+    // strategy: make a POST request with data,
+    // then prove that the acronym we get back has
+    // right keys, and that `id` is there (which means
+    // the data was inserted into db)
+    it('should add an acronym on POST', function() {
+      const newAcronym = {acronym: faker.random.word, definition: faker.random.words};
+      return chai.request(app)
+        .post('/api/acronyms')
+        .send(newAcronym)
+        .set('authorization', `Bearer ${token}`)
+        .then(function(res) {
+          res.should.have.status(201);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.include.keys(expectedKeys);
+          res.body.id.should.not.be.null;
+          res.body.acronym.should.equal(newAcronym.acronym);
+          res.body.definition.should.equal(newAcronym.definition);
+          return Acronym.findById(res.body.id);
+        })
+        .then(function(acronym){
+          acronym.acronym.should.equal(newAcronym.acronym);
+          acronym.definition.should.equal(newAcronym.definition);
+        });
+    });
   });
 
-  // test strategy:
-  //  1. initialize some update data (we won't have an `id` yet)
-  //  2. make a GET request so we can get an item to update
-  //  3. add the `id` to `updateData`
-  //  4. Make a PUT request with `updateData`
-  //  5. Inspect the response object to ensure it
-  //  has right status code and that we get back an updated
-  //  item with the right data in it.
-  it('should update acronyms on PUT', function() {
-    // we initialize our updateData here and then after the initial
-    // request to the app, we update it with an `id` property so
-    // we can make a second, PUT call to the app.
-    const updateData = {
-      acronym: 'DRY',
-      definition: "Updated 'Don't' to: 'Do' Repeat Yourself"
-    };
-
-    return chai.request(app)
-      // first have to get so we have an idea of object to update
-      .get('/acronyms')
-      .then(function(res) {
-        let updatingAcronym = {};
-        for(let acronym of res.body){
-          if(acronym.acronym === updateData.acronym){
-            updatingAcronym = acronym;
-          }
-        }
-        updateData.id = updatingAcronym.id;
-        // this will return a promise whose value will be the response
-        // object, which we can inspect in the next `then` back. Note
-        // that we could have used a nested callback here instead of
-        // returning a promise and chaining with `then`, but we find
-        // this approach cleaner and easier to read and reason about.
-        return chai.request(app)
-          .put(`/acronyms/${updateData.id}`)
-          .send(updateData);
-      })
-      // prove that the PUT request has right status code
-      // and returns updated item
-      .then(function(res) {
-        res.should.have.status(200);
-        res.should.be.json;
-        res.body.should.be.a('object');
-        res.body.id.should.equal(updateData.id);
+  describe('PUT endpoint', function() {
+    let token;
+    beforeEach(function() {
+      token = jwt.sign({
+        user: {
+          username,
+          firstName,
+          lastName
+        },
+      }, JWT_SECRET, {
+        algorithm: 'HS256',
+        subject: username,
+        expiresIn: '7d'
       });
+    });
+
+    // strategy:
+    //  1. Get an existing acronym from db
+    //  2. Make a PUT request to update that acronym
+    //  3. Prove acronym returned by request contains data we sent
+    //  4. Prove acronym in db is correctly updated
+    it('should update acronyms on PUT', function() {
+      // we initialize our updateData here and then after the initial
+      // request to the app, we update it with an `id` property so
+      // we can make a second, PUT call to the app.
+      const updateData = {
+        'acronym': faker.random.word,
+        'definition': faker.random.words
+      };
+
+      return Acronym
+        .findOne()
+        .then(function(acronym) {
+          updateData.id = acronym.id;
+          // this will return a promise whose value will be the response
+          // object, which we can inspect in the next `then` back. Note
+          // that we could have used a nested callback here instead of
+          // returning a promise and chaining with `then`, but we find
+          // this approach cleaner and easier to read and reason about.
+          return chai.request(app)
+            .put(`/api/acronyms/${updateData.id}`)
+            .send(updateData)
+            .set('authorization', `Bearer ${token}`);
+        })
+        // prove that the PUT request has right status code
+        // and returns updated item
+        .then(function(res) {
+          res.should.have.status(200);
+          return Acronym.findById(updateData.id);
+        })
+        .then(function(acronym){
+          acronym.acronym.should.equal(updateData.acronym);
+          acronym.definition.should.equal(updateData.definition);
+        });
+    });
   });
 
-  // test strategy:
-  //  1. GET a shopping list items so we can get ID of one
-  //  to delete.
-  //  2. DELETE an item and ensure we get back a status 204
-  it('should delete acronyms on DELETE', function() {
-    return chai.request(app)
-      // first have to get so we have an `id` of item
-      // to delete
-      .get('/acronyms')
-      .then(function(res) {
-        return chai.request(app)
-          .delete(`/acronyms/${res.body[0].id}`);
-      })
-      .then(function(res) {
-        res.should.have.status(204);
+  describe('DELETE endpoint', function() {
+    let token;
+    beforeEach(function() {
+      token = jwt.sign({
+        user: {
+          username,
+          firstName,
+          lastName
+        },
+      }, JWT_SECRET, {
+        algorithm: 'HS256',
+        subject: username,
+        expiresIn: '7d'
       });
+    });
+      
+    // strategy:
+    //  1. get a acronym
+    //  2. make a DELETE request for that acronym's id
+    //  3. assert that response has right status code
+    //  4. prove that acronym with the id doesn't exist in db anymore
+    it('should delete acronyms on DELETE', function() {
+      let acronym;
+      
+      return Acronym
+        .findOne()
+        .then(function(_acronym){
+          acronym = _acronym;
+          return chai.request(app).delete(`/api/acronyms/${acronym.id}`)
+          .set('authorization', `Bearer ${token}`);
+        })
+        .then(function(res) {
+          res.should.have.status(204);
+          return Acronym.findById(acronym.id)
+        })
+        .then(function(_acronym){
+          // when a variable's value is null, chaining `should`
+          // doesn't work. so `_acronym.should.be.null` would raise
+          // an error. `should.be.null(_acronym)` is how we can
+          // make assertions about a null value.
+          should.not.exist(_acronym);
+        });
+    });
   });
 });
