@@ -74,7 +74,7 @@ router.put('/:id',
     definition: req.body.definition
   }}).exec().then(acronym => {
     console.log(`Updated Acronym \`${acronym.id}\``);
-    res.status(201).json(acronym.apiRepr());
+    res.status(200).json(acronym.apiRepr());
   }).catch(err => {
     console.error(err);
     res.status(500).json({message: 'Internal server error'});

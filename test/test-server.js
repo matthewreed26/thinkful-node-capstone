@@ -1,10 +1,13 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+const jwt = require('jsonwebtoken');
 const faker = require('faker');
 const mongoose = require('mongoose');
 
 const {Acronym} = require('../acronyms/models');
-const {app, runServer, closeServer} = require('../server');const { TEST_DATABASE_URL, JWT_SECRET } = require('../config');
+const {app, runServer, closeServer} = require('../server');
+const {User} = require('../users');
+const { TEST_DATABASE_URL, JWT_SECRET } = require('../config');
 
 
 // this lets us use *should* style syntax in our tests
@@ -27,7 +30,7 @@ function seedAcronymData() {
   const seedData = [];
 
   for (let i=1; i<=10; i++) {
-    seedData.push({'acronym':faker.random.word, 'definition':faker.random.words});
+    seedData.push({'acronym':faker.random.word(), 'definition':faker.random.words()});
   }
   // this will return a promise
   return Acronym.insertMany(seedData);
@@ -95,19 +98,16 @@ describe('Acronym Finder', function() {
   // this allows us to make clearer, more discrete tests that focus
   // on proving something small
   describe('GET endpoint', function() {
-    let token;
-    beforeEach(function() {
-      token = jwt.sign({
-        user: {
-          username,
-          firstName,
-          lastName
-        },
-      }, JWT_SECRET, {
-        algorithm: 'HS256',
-        subject: username,
-        expiresIn: '7d'
-      });
+    let token = jwt.sign({
+      user: {
+        username,
+        firstName,
+        lastName
+      },
+    }, JWT_SECRET, {
+      algorithm: 'HS256',
+      subject: username,
+      expiresIn: '7d'
     });
   
     it('should list acronyms on GET', function() {
@@ -123,7 +123,7 @@ describe('Acronym Finder', function() {
       return chai.request(app)
         .get('/api/acronyms')
         .set('authorization', `Bearer ${token}`)
-        .then(function(res) {
+        .then(function(_res) {
           // so subsequent .then blocks can access resp obj.
           res = _res;
           res.should.have.status(200);
@@ -153,6 +153,7 @@ describe('Acronym Finder', function() {
             acronym.should.be.a('object');
             acronym.should.include.keys(expectedKeys);
           });
+          resAcronym = res.body[0];
           return Acronym.findById(resAcronym.id);
         })
         .then(function(acronym){
@@ -164,19 +165,16 @@ describe('Acronym Finder', function() {
   });
 
   describe('POST endpoint', function() {
-    let token;
-    beforeEach(function() {
-      token = jwt.sign({
-        user: {
-          username,
-          firstName,
-          lastName
-        },
-      }, JWT_SECRET, {
-        algorithm: 'HS256',
-        subject: username,
-        expiresIn: '7d'
-      });
+    let token = jwt.sign({
+      user: {
+        username,
+        firstName,
+        lastName
+      },
+    }, JWT_SECRET, {
+      algorithm: 'HS256',
+      subject: username,
+      expiresIn: '7d'
     });
     
     // strategy: make a POST request with data,
@@ -184,7 +182,8 @@ describe('Acronym Finder', function() {
     // right keys, and that `id` is there (which means
     // the data was inserted into db)
     it('should add an acronym on POST', function() {
-      const newAcronym = {acronym: faker.random.word, definition: faker.random.words};
+      const newAcronym = {'acronym': faker.random.word(), 'definition': faker.random.words()};
+      console.info('POST newAcronym: '+JSON.stringify(newAcronym));
       return chai.request(app)
         .post('/api/acronyms')
         .send(newAcronym)
@@ -207,19 +206,16 @@ describe('Acronym Finder', function() {
   });
 
   describe('PUT endpoint', function() {
-    let token;
-    beforeEach(function() {
-      token = jwt.sign({
-        user: {
-          username,
-          firstName,
-          lastName
-        },
-      }, JWT_SECRET, {
-        algorithm: 'HS256',
-        subject: username,
-        expiresIn: '7d'
-      });
+    let token = jwt.sign({
+      user: {
+        username,
+        firstName,
+        lastName
+      },
+    }, JWT_SECRET, {
+      algorithm: 'HS256',
+      subject: username,
+      expiresIn: '7d'
     });
 
     // strategy:
@@ -231,52 +227,46 @@ describe('Acronym Finder', function() {
       // we initialize our updateData here and then after the initial
       // request to the app, we update it with an `id` property so
       // we can make a second, PUT call to the app.
-      const updateData = {
-        'acronym': faker.random.word,
-        'definition': faker.random.words
-      };
-
+      const updateAcronym = {'acronym': faker.random.word(), 'definition': faker.random.words()};
+      console.info('PUT updateAcronym: '+JSON.stringify(updateAcronym));
       return Acronym
         .findOne()
         .then(function(acronym) {
-          updateData.id = acronym.id;
+          updateAcronym.id = acronym.id;
           // this will return a promise whose value will be the response
           // object, which we can inspect in the next `then` back. Note
           // that we could have used a nested callback here instead of
           // returning a promise and chaining with `then`, but we find
           // this approach cleaner and easier to read and reason about.
           return chai.request(app)
-            .put(`/api/acronyms/${updateData.id}`)
-            .send(updateData)
+            .put(`/api/acronyms/${updateAcronym.id}`)
+            .send(updateAcronym)
             .set('authorization', `Bearer ${token}`);
         })
         // prove that the PUT request has right status code
         // and returns updated item
         .then(function(res) {
           res.should.have.status(200);
-          return Acronym.findById(updateData.id);
+          return Acronym.findById(updateAcronym.id);
         })
         .then(function(acronym){
-          acronym.acronym.should.equal(updateData.acronym);
-          acronym.definition.should.equal(updateData.definition);
+          acronym.acronym.should.equal(updateAcronym.acronym);
+          acronym.definition.should.equal(updateAcronym.definition);
         });
     });
   });
 
   describe('DELETE endpoint', function() {
-    let token;
-    beforeEach(function() {
-      token = jwt.sign({
-        user: {
-          username,
-          firstName,
-          lastName
-        },
-      }, JWT_SECRET, {
-        algorithm: 'HS256',
-        subject: username,
-        expiresIn: '7d'
-      });
+    let token = jwt.sign({
+      user: {
+        username,
+        firstName,
+        lastName
+      },
+    }, JWT_SECRET, {
+      algorithm: 'HS256',
+      subject: username,
+      expiresIn: '7d'
     });
       
     // strategy:
