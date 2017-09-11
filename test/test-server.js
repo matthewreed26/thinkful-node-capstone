@@ -1,3 +1,4 @@
+global.BCRYPT_HASH_LENGTH = 2;
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const jwt = require('jsonwebtoken');
