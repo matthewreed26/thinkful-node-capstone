@@ -1,31 +1,34 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
-const app = express();
+const cors = require('cors');
+const passport = require('passport');
 const mongoose = require('mongoose');
-
 // Mongoose internally uses a promise-like object,
 // but its better to make Mongoose use built in es6 promises
 mongoose.Promise = global.Promise;
 
-const {PORT, DATABASE_URL} = require('./config');
-
-const acronymsRouter = require('./acronymsRouter');
-
-// log the http layer
+const app = express();
 app.use(morgan('common'));
+
+app.use(cors());
+app.options('*', cors());
 app.use(bodyParser.urlencoded({ extended: true })); // Parses urlencoded bodies
 app.use(bodyParser.json()); // Send JSON responses
-app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers',
-  'Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Credentials');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-});
 
-app.use('/acronyms', acronymsRouter);
+const {router: usersRouter} = require('./users');
+const {router: authRouter, basicStrategy, jwtStrategy} = require('./auth');
+const {router: acronymsRouter} = require('./acronyms');
+const {PORT, DATABASE_URL} = require('./config');
+
+app.use(passport.initialize());
+passport.use(basicStrategy);
+passport.use(jwtStrategy);
+
+app.use('/api/users/', usersRouter);
+app.use('/api/auth/', authRouter);
+app.use('/api/acronyms', acronymsRouter);
 
 let server;
 
