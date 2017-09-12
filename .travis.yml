@@ -1,7 +1,7 @@
 language: node_js
 node_js: node
 services: 
-  - mongo
+  - mongodb
 deploy:
   provider: heroku
   app: polar-lake-31524
