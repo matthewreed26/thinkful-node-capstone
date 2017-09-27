@@ -67,13 +67,18 @@ router.put('/:id',
     console.error(message);
     return res.status(400).send(message);
   }
-  console.log(`Updating Acronym \`${req.params.id}\``);
-  Acronym.findByIdAndUpdate(req.params.id, {$set: {
+  const acronymForUpdate = {
     id: req.params.id,
     acronym: req.body.acronym,
     definition: req.body.definition
-  }}).exec().then(acronym => {
-    console.log(`Updated Acronym \`${acronym.id}\``);
+  };
+  console.log(`Updating Acronym \`${acronymForUpdate.id}\``);
+  Acronym.findByIdAndUpdate(req.params.id, {$set: acronymForUpdate}).exec().then(acronym => {
+    //findByIdAndUpdate doesn't pass back the updated acronym object
+    //so we'll update it ourselves (id stays the same)
+    acronym.acronym = acronymForUpdate.acronym;
+    acronym.definition = acronymForUpdate.definition;
+    console.log(`Updated Acronym \`${acronym.id}\` with \`${acronym.acronym}:${acronym.definition}\``);
     res.status(200).json(acronym.apiRepr());
   }).catch(err => {
     console.error(err);
