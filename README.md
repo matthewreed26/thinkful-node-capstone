@@ -29,7 +29,7 @@ api/acronyms[with one of the following]
 ## Built With
 
 * The MERN-stack
-* Tests utilize Mocha and Chai
+* Test-Driven Development utilizing Mocha and Chai
 * Builds and Deployment are done using Travis-CI
 * Example hosted using mLab, Heroku, and Netlify
 
