@@ -4,7 +4,7 @@ Acronyms are everywhere in our lives. But what does each one stand for anyway? W
 
 Example of this project can be found here: https://www.matthewreed26.us
 
-!{screenshot from Acronym Finder](AcronymFinderScreenshot.jpg)
+![screenshot from Acronym Finder](AcronymFinderScreenshot.jpg)
 
 ## Getting Started
 
