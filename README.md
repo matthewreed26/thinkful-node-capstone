@@ -4,6 +4,8 @@ Acronyms are everywhere in our lives. But what does each one stand for anyway? W
 
 Example of this project can be found here: https://www.matthewreed26.us
 
+!{screenshot from Acronym Finder](AcronymFinderScreenshot.jpg)
+
 ## Getting Started
 
 I won't go into the specifics of installing mongoDB, Nodejs, or Reactjs. Please look at the package.json for running tests and starting the server. This project is meant to work in collaboration with https://github.com/matthewreed26/thinkful-node-capstone-react and can be used from the start without any data necessary as long as your mongoDB, this project, and the react one are all running simultaneously.
