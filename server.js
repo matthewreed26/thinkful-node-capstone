@@ -32,20 +32,21 @@ app.use('/api/acronyms', acronymsRouter);
 
 let server;
 
-function runServer(databaseUrl=DATABASE_URL, port=PORT) {
+function runServer(databaseUrl = DATABASE_URL, port = PORT) {
   return new Promise((resolve, reject) => {
-    mongoose.connect(databaseUrl, err => {
-      if (err) {
-        return reject(err);
+    mongoose.connect(databaseUrl, { useMongoClient: true }, (connectErr) => {
+      if (connectErr) {
+        return reject(connectErr);
       }
+      let returnPromise;
       server = app.listen(port, () => {
         console.log(`Your app is listening on port ${port}`);
-        resolve();
-      })
-      .on('error', err => {
+        returnPromise = resolve();
+      }).on('error', (err) => {
         mongoose.disconnect();
-        reject(err);
+        returnPromise = reject(err);
       });
+      return returnPromise;
     });
   });
 }
